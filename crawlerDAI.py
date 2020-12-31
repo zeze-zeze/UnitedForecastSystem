@@ -146,39 +146,11 @@ def grabCWBthenPush( ):
             initCWB( )
             prepareData( )
             driver.quit()
-            # print(line2)
-            while gotInput2:  # 不要跟別人搶 
-                time.sleep(0.1)
-                continue  # go back to while
-            theInput2 = line2
-            gotInput2 = True  
             crawl=False
         if allDead: 
             break
 
-def doRead( ): 
-    global gotInput, theInput, allDead
-    while True:
-        while gotInput:
-           time.sleep(0.1)
-           continue  # go back to while
-        try:
-           theInput = input("Give me input:")
-        except Exception:    ##  KeyboardInterrupt:
-           allDead = True
-           print("\n\nDeregister " + DAN.profile['d_name'] + " !!!\n",  flush=True)
-           DAN.deregister()
-           sys.stdout = sys.__stdout__
-           print(" Thread say Bye bye ---------------", flush=True)
-           sys.exit( );   ## break  # raise   #  ?
-        gotInput=True
-        if theInput =='quit' or theInput == "exit": allDead = True;
-        else: print("Will send " + theInput, end="   , ")
-
 #creat a thread to do Input data from keyboard, by tsaiwn@cs.nctu.edu.tw
-threadx = threading.Thread(target=doRead)
-threadx.daemon = True  # 魔鬼(server) 在主thread結束後也會自殺！
-threadx.start()   # 這時 threadx 開始 "同時" 執行
 thready = threading.Thread(target=grabCWBthenPush)
 thready.daemon = True    # daemon 的 a 不發音 == 魔鬼 == server program
 thready.start()   # 這時 thready 也開始 "同時" 執行
@@ -186,40 +158,21 @@ thready.start()   # 這時 thready 也開始 "同時" 執行
 def check_alive(him):   # check a thread to see if it is alive?
     him.join(timeout=0.0)
     return him.is_alive() 
-#cnt = 0    ##  for debug 
-gotInput = False
-gotInput2 = False
+
 while True:     ##  這是 main thread 主執行緒的　典型寫法 : 一個 Loop !
     if(allDead): break;  
-    '''cnt += 1    ## for debug ..
-    if cnt % 20 == 0:   # for debug to check thready is alive
-       # print("is y-thread alive: ", check_alive(thready), end=", ")
-       # print(cnt)
-       pass'''
+
 #  # 以上用來 check 負責抓 CWB 資料的 thread 是否還活著
     try:   ## main thread 依序做以下 (1)(2)(3) 三件事: 
     #(1)Pull data from a device feature called "Dummy_Control" 
         value1=DAN.pull('Dummy_Control')
         if value1 != None:
-            #print (value1[0])  
-            if value1[0]=="weather":
-                crawl=True
-    #(2)Push keyboard data to a device feature called "Dummy_Sensor", if any 
-        if gotInput:
-           if theInput =='quit' or theInput=="exit":
-              break;  #  sys.exit( );  
-           if(allDead): break;
-           #DAN.push ('Dummy_Sensor', value2,  value2)  #  試這:  
-           DAN.push('Dummy_Sensor', theInput)  
-           gotInput=False   # so that you can input again 
-    #(3)Push CWB data from crawler to a device feature called "Dummy_Sensor", if any 
-        '''if gotInput2:
-           DAN.push('Dummy_Sensor', theInput2)
-           # DAN.push('Dummy_Sensor', "543 push ggg yyy")   # for debug
-           gotInput2=False    ## 通知 thready 爬蟲'''
+            print (value1[0])
+            crawl=True 
+                
 
     except KeyboardInterrupt:    ## 敲了 CTRL_C
-        break;
+        break
     except Exception as e:    ## 不明原因, 可能剛剛網路斷了!
         print(e)
         if str(e).find('mac_addr not found:') != -1:
