@@ -1,3 +1,13 @@
-forecast
-humidity: 49 10.0
-test123
+Date:2020-Dec-31 23:00:00
+Temperatur(¢XC):10.150
+Weather:CLOUDY
+Wind Direction:ENE
+Wind Speed (m/s):1.62
+Gust (m/s):9.95
+Visibility(km):-
+Humidity(%):62
+Pressure(Pas):-
+Accumulated Rainfall(mm):0.0
+Sunshine(hour):-
+Indoor Temperature: 19
+Indoor Humidity: 0
