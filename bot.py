@@ -15,6 +15,7 @@ import os
 
 app = Flask(__name__)
 
+# Not used anymore
 line_bot_api = LineBotApi('2m0r9EIU+Hg4LYMixZf2eIvwRqQSEY7hHNWmdooEIzlDYmDMwHysOf3SOFMZ7/DQgNr64qh0VXZ1eRaHQmpEgFuA2inyca1SOzB8oPIwaPU9O9Vuv/47M7U3WbARNi4lUzqBth1UYxAakQuN/a5/sgdB04t89/1O/w1cDnyilFU=')
 handler = WebhookHandler('96b8579ecc77bbd327d8ca59778a040a')
 
