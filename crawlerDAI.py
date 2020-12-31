@@ -18,6 +18,9 @@ gotInput=False
 theInput="haha"
 allDead=False
 crawl=False
+s=""
+temp_sensor=0
+humi=0
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -42,7 +45,7 @@ driverReady = False
 region = 'hsinchu'
 reginTitle="新竹測站觀測資料"
 
-url = 'https://www.cwb.gov.tw/V8/C/W/OBS_Station.html?ID=46757'
+url = 'https://www.cwb.gov.tw/V8/E/W/OBS_Station.html?ID=C0D66'
 from time import sleep   # so that we do NOT have to write time.sleep( ) :-) 
 def initCWB(): 
    global  driver, driverReady
@@ -102,22 +105,22 @@ def buildTable( ):
   global date,temp,weather, wind_direction, wind_speed, gust_wind
   global visible, hum, pre, rain, sunlight
   table = {
-"觀測時間":date,
-"溫度(°C)":temp,
-"天氣":weather,
-"風向":wind_direction,
-"風力 (m/s)":wind_speed,
-"陣風 (m/s)":gust_wind,
-"能見度(公里)":visible,
-"相對溼度(%)":hum,
-"海平面氣壓(百帕)":pre,
-"當日累積雨量(毫米)":rain,
-"日照時數(小時)":sunlight
+"Date":date,
+"Temperatur(°C)":temp,
+"Weather":weather,
+"Wind Direction":wind_direction,
+"Wind Speed (m/s)":wind_speed,
+"Gust (m/s)":gust_wind,
+"Visibility(km)":visible,
+"Humidity(%)":hum,
+"Pressure(Pas)":pre,
+"Accumulated Rainfall(mm)":rain,
+"Sunshine(hour)":sunlight
 }
 
 ## 這函數會把 line 和 line2 準備好, 分別是次新和最新 的氣象資料 
 def prepareData( ):
-    global  driver, line, line2, driverReady, table
+    global  driver, line, line2, driverReady, table, s,temp_sensor,humi
     #指定 lxml 作為解析器
     soup = BeautifulSoup(driver.page_source, features='lxml')
     # <tbody id='obstime'>  # 抓過去24小時資料 (氣象局網頁給的) 
@@ -129,14 +132,18 @@ def prepareData( ):
     clearLists( )   # 清除所有 11 項 List   # (主要是後來才想要 push 兩筆資料 :-) 
     processTr(tr)  # 其實直接寫 processTr(trs[0]) 即可
     buildTable( )  # 參看前面處理 trs[1] ..
-    line2 ="\r\n"
+    line2=""
     for gg in table:    
        yy = table[gg][0]   
-       if gg == "觀測時間":   # 特別處理這項
+       if gg == "Date":   # 特別處理這項
           yy = yy.strftime("%Y-%b-%d %H:%M:%S")
        line2 += gg +":" + yy
-       line2 += "\r\n"
-    print("Weather info: ", line2, flush=True)   # for debug  
+       line2 += "\n"
+    line2 += "Indoor Temperature: "+str(temp_sensor)+"\nIndoor Humidity: "+str(humi)+"\n"
+    file_out = open("output.txt","w") 
+    print(line2)
+    file_out.write(line2)
+    file_out.close()
 
 def grabCWBthenPush( ): 
   global gotInput2, theInput2, allDead, driver, crawl
@@ -146,14 +153,28 @@ def grabCWBthenPush( ):
             initCWB( )
             prepareData( )
             driver.quit()
+            # print(line2)
+            '''while gotInput2:  # 不要跟別人搶 
+                time.sleep(0.1)
+                continue  # go back to while
+            theInput2 = line2
+            gotInput2 = True  '''
             crawl=False
         if allDead: 
             break
+
+def Sensor(val):
+    global temp_sensor,humi
+    temp_sensor=int(val/100)
+    humi=int(val%100)
+    #print(s, flush=True)
+
 
 #creat a thread to do Input data from keyboard, by tsaiwn@cs.nctu.edu.tw
 thready = threading.Thread(target=grabCWBthenPush)
 thready.daemon = True    # daemon 的 a 不發音 == 魔鬼 == server program
 thready.start()   # 這時 thready 也開始 "同時" 執行
+
 
 def check_alive(him):   # check a thread to see if it is alive?
     him.join(timeout=0.0)
@@ -167,7 +188,7 @@ while True:     ##  這是 main thread 主執行緒的　典型寫法 : 一個 L
     #(1)Pull data from a device feature called "Dummy_Control" 
         value1=DAN.pull('Dummy_Control')
         if value1 != None:
-            print (value1[0])
+            Sensor(int(value1[0]))
             crawl=True 
                 
 
